@@ -6,8 +6,8 @@ import Nav from "@/components/Nav";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Toolkit Hub — 7 tools in one place",
-  description: "Website review, multi-Gmail inbox, faceless YouTube studio, Search Console, AI chat, and research tools in one app.",
+  title: "Toolkit Hub — research and productivity tools",
+  description: "Website review, AI chat, and focused product, law, science, and medical research assistants in one app.",
   icons: {
     icon: "/favicon.png",
   },

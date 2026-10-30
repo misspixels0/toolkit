@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import ToolIcon from "@/components/ToolIcon";
 
 type Source = {
   title: string;
@@ -16,7 +17,7 @@ type ChatMessage = {
 };
 
 type ResearchChatProps = {
-  type: "product" | "law";
+  type: "product" | "law" | "science" | "medical" | "business" | "language";
   title: string;
   subtitle: string;
   description: string;
@@ -62,7 +63,11 @@ export default function ResearchChat({
       if (!res.ok) throw new Error(data?.error || "Could not get research results.");
       setMessages([
         ...nextMessages,
-        { role: "assistant", content: data.reply, sources: data.sources || [] },
+        {
+          role: "assistant",
+          content: data.reply,
+          sources: type === "language" ? undefined : data.sources || [],
+        },
       ]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
@@ -77,12 +82,12 @@ export default function ResearchChat({
   }
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-12">
+    <main className="page-shell min-h-screen px-4 py-8 sm:px-6 sm:py-12">
       <section className="mx-auto flex min-h-[min(760px,calc(100vh-150px))] max-w-4xl flex-col overflow-hidden rounded-2xl border border-ink-900/5 bg-white shadow-card">
         <header className="border-b border-ink-900/5 px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">
-              {type === "product" ? "P" : "L"}
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-600 text-white">
+              <ToolIcon icon={type} />
             </div>
             <div>
               <h1 className="text-lg font-semibold text-ink-900">{title}</h1>
@@ -104,7 +109,11 @@ export default function ResearchChat({
                 ✦
               </div>
               <h2 className="mt-4 text-xl font-semibold text-ink-900">{description}</h2>
-              <p className="mt-2 text-sm text-ink-500">Web search is enabled; answers include source links when available.</p>
+              <p className="mt-2 text-sm text-ink-500">
+                {type === "language"
+                  ? "Practice at your level; ask for explanations, corrections, or conversation."
+                  : "Web search is enabled; answers include source links when available."}
+              </p>
               <div className="mt-6 flex flex-wrap justify-center gap-2">
                 {suggestions.map((suggestion) => (
                   <button
@@ -112,7 +121,7 @@ export default function ResearchChat({
                     type="button"
                     onClick={() => void sendMessage(suggestion)}
                     disabled={loading}
-                    className="rounded-full border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 transition hover:border-brand-200 hover:text-brand-700 disabled:opacity-50"
+                    className="suggestion-chip rounded-full border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 hover:border-brand-200 hover:text-brand-700 disabled:opacity-50"
                   >
                     {suggestion}
                   </button>
@@ -123,7 +132,7 @@ export default function ResearchChat({
             messages.map((message, index) => (
               <div
                 key={`${index}-${message.role}`}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`chat-message flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div className="max-w-[90%] sm:max-w-[80%]">
                   {message.role === "user" ? (
@@ -218,8 +227,8 @@ export default function ResearchChat({
             ))
           )}
           {loading && (
-            <p className="w-fit rounded-2xl rounded-bl-md border border-ink-900/5 bg-white px-4 py-3 text-sm text-ink-500 shadow-sm">
-              Searching the web…
+            <p className="thinking-indicator chat-message w-fit rounded-2xl rounded-bl-md border border-ink-900/5 bg-white px-4 py-3 text-sm text-ink-500 shadow-sm">
+              {type === "language" ? "Thinking…" : "Searching the web…"}
             </p>
           )}
           {error && (

@@ -31,7 +31,7 @@ export default function Nav() {
               <Link
                 key={t.slug}
                 href={t.href}
-                className={`shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium transition ${
+                className={`nav-link shrink-0 rounded-lg px-3 py-1.5 text-sm font-medium ${
                   active ? "bg-brand-50 text-brand-700" : "text-ink-500 hover:bg-ink-900/5 hover:text-ink-900"
                 }`}
               >

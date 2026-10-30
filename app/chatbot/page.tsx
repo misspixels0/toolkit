@@ -10,7 +10,7 @@ type ChatMessage = {
 const suggestions = [
   "What can I do with this Toolkit Hub?",
   "Explain SEO in simple words",
-  "Help me brainstorm a YouTube video idea",
+  "Help me organize a busy day",
 ];
 
 export default function ChatbotPage() {
@@ -56,7 +56,7 @@ export default function ChatbotPage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 sm:py-12">
+    <main className="page-shell min-h-screen px-4 py-8 sm:px-6 sm:py-12">
       <section className="mx-auto flex min-h-[min(760px,calc(100vh-150px))] max-w-4xl flex-col overflow-hidden rounded-2xl border border-ink-900/5 bg-white shadow-card">
         <header className="border-b border-ink-900/5 px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export default function ChatbotPage() {
                     type="button"
                     onClick={() => void sendMessage(suggestion)}
                     disabled={loading}
-                    className="rounded-full border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 transition hover:border-brand-200 hover:text-brand-700 disabled:opacity-50"
+                    className="suggestion-chip rounded-full border border-ink-900/10 bg-white px-4 py-2 text-sm text-ink-700 hover:border-brand-200 hover:text-brand-700 disabled:opacity-50"
                   >
                     {suggestion}
                   </button>
@@ -101,7 +101,7 @@ export default function ChatbotPage() {
             messages.map((message, index) => (
               <div
                 key={`${index}-${message.role}`}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`chat-message flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <p
                   className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[75%] ${
@@ -116,7 +116,7 @@ export default function ChatbotPage() {
             ))
           )}
           {loading && (
-            <p className="w-fit rounded-2xl rounded-bl-md border border-ink-900/5 bg-white px-4 py-3 text-sm text-ink-500 shadow-sm">
+            <p className="thinking-indicator chat-message w-fit rounded-2xl rounded-bl-md border border-ink-900/5 bg-white px-4 py-3 text-sm text-ink-500 shadow-sm">
               Thinking…
             </p>
           )}

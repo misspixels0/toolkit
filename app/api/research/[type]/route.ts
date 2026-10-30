@@ -11,8 +11,36 @@ export async function POST(
   context: { params: { type: string } }
 ) {
   const researchType = context.params.type;
-  if (researchType !== "product" && researchType !== "law") {
+  if (
+    researchType !== "product" &&
+    researchType !== "law" &&
+    researchType !== "science" &&
+    researchType !== "medical" &&
+    researchType !== "business" &&
+    researchType !== "language"
+  ) {
     return NextResponse.json({ error: "Unknown research assistant." }, { status: 404 });
+  }
+  const requiredKey = researchType === "science"
+    ? process.env.SCIENCE_GROQ_API_KEY
+    : researchType === "medical"
+    ? process.env.MEDICAL_GROQ_API_KEY
+    : researchType === "business" || researchType === "language"
+    ? process.env.SPECIALIST_GROQ_API_KEY
+    : undefined;
+  if (
+    (researchType === "science" || researchType === "medical" || researchType === "business" || researchType === "language") &&
+    !requiredKey
+  ) {
+    const keyName = researchType === "science"
+      ? "SCIENCE_GROQ_API_KEY"
+      : researchType === "medical"
+      ? "MEDICAL_GROQ_API_KEY"
+      : "SPECIALIST_GROQ_API_KEY";
+    return NextResponse.json(
+      { error: `Set ${keyName} in .env.local or your Vercel project settings to use this research assistant.` },
+      { status: 400 }
+    );
   }
 
   let body: unknown;

@@ -18,10 +18,11 @@ export function hasAIKey() {
 
 async function groqChat(
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>,
-  browserSearch = false
+  browserSearch = false,
+  apiKey = process.env.GROQ_API_KEY
 ) {
-  const key = process.env.GROQ_API_KEY;
-  if (!key) throw new Error("GROQ_API_KEY is not set");
+  if (!apiKey) throw new Error("The Groq API key is not set");
+  const key = apiKey;
 
   const model = process.env.GROQ_MODEL || DEFAULT_GROQ_MODEL;
   const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -35,7 +36,7 @@ async function groqChat(
       messages,
       ...(browserSearch
         ? {
-            tool_choice: "required",
+            tool_choice: "auto",
             tools: [{ type: "browser_search" }],
             max_completion_tokens: 4096,
             reasoning_effort: "low",
@@ -92,21 +93,56 @@ function cleanBrowserCitations(text: string) {
 
 export async function aiResearch(
   messages: ResearchMessage[],
-  researchType: "product" | "law"
+  researchType: "product" | "law" | "science" | "medical" | "business" | "language"
 ): Promise<{ text: string; sources: ResearchSource[] }> {
-  if (!process.env.GROQ_API_KEY) return geminiResearch(messages, researchType);
+  const groqApiKey = researchType === "science"
+    ? process.env.SCIENCE_GROQ_API_KEY
+    : researchType === "medical"
+    ? process.env.MEDICAL_GROQ_API_KEY
+    : researchType === "business" || researchType === "language"
+    ? process.env.SPECIALIST_GROQ_API_KEY
+    : process.env.GROQ_API_KEY;
+
+  if (!groqApiKey) {
+    if (researchType === "science" || researchType === "medical" || researchType === "business" || researchType === "language") {
+      const keyName = researchType === "science"
+        ? "SCIENCE_GROQ_API_KEY"
+        : researchType === "medical"
+        ? "MEDICAL_GROQ_API_KEY"
+        : "SPECIALIST_GROQ_API_KEY";
+      throw new Error(`${keyName} is not set.`);
+    }
+    return geminiResearch(messages, researchType);
+  }
 
   const instructions =
-    researchType === "product"
+    researchType === "language"
+      ? "You are a friendly, patient language tutor. Help learners practice any language and adapt to the language and level they request. Correct mistakes kindly, explain grammar and word choice simply, provide natural examples, and keep conversation practice interactive. If the learner does not specify a target language, ask which language they want to learn. Do not claim a learner is wrong when their phrasing is also valid; explain differences in register or dialect when relevant."
+      : researchType === "business"
+      ? "You are a business research assistant. Search for current information about industries, markets, competitors, customer segments, business models, and opportunities. Prioritize reliable company filings, official statistics, industry reports, and reputable news. Clearly separate sourced facts from estimates or analysis, note dates and geographic scope, and do not invent facts, figures, or citations."
+      : researchType === "product"
       ? "You are a product and market research assistant. Search the web for current information. Compare products, features, prices, pros and cons, and market alternatives when relevant. Prefer manufacturer pages and reputable independent sources. Distinguish verified facts from opinions, give dates or note when prices may change, and do not invent facts or citations."
-      : "You are a laws and regulations research assistant, not a lawyer. Search the web for current legal information and prioritize official government, court, and regulator sources. Laws depend on jurisdiction: if the user has not specified the country or region and the question depends on it, ask which jurisdiction they mean instead of assuming. Clearly identify jurisdiction and relevant dates, explain uncertainty, and never present the answer as legal advice. Do not invent laws or citations.";
+      : researchType === "law"
+      ? "You are a laws and regulations research assistant, not a lawyer. Search the web for current legal information and prioritize official government, court, and regulator sources. Laws depend on jurisdiction: if the user has not specified the country or region and the question depends on it, ask which jurisdiction they mean instead of assuming. Clearly identify jurisdiction and relevant dates, explain uncertainty, and never present the answer as legal advice. Do not invent laws or citations."
+      : researchType === "science"
+      ? "You are a science research assistant. Search for current evidence and prioritize peer-reviewed research, systematic reviews, established scientific institutions, and primary sources when appropriate. Explain methods and limitations, distinguish consensus from emerging or disputed findings, and note publication dates. Do not invent study results, citations, or certainty."
+      : "You are a medical research information assistant, not a clinician. Search for current evidence and prioritize authoritative public health agencies, clinical guidelines, systematic reviews, and peer-reviewed medical research. Explain evidence quality, uncertainty, and publication dates; do not diagnose, prescribe, or give personalized treatment instructions. Encourage consulting a qualified healthcare professional for personal medical decisions, and direct emergencies to local emergency services. Do not invent medical claims or citations.";
+  if (researchType === "language") {
+    const response = await groqChat([
+      { role: "system", content: instructions },
+      ...messages,
+    ], false, groqApiKey);
+    return { text: response, sources: [] };
+  }
+
   const systemInstruction = `${instructions} Use browser search. Format the answer clearly with headings, short paragraphs, and bullets; use a table only when it genuinely helps compare items. Do not include a source/citation column or browser citation markers such as [1†L10-L13]. Link claims with normal Markdown links to the actual pages you accessed, and finish with a "Sources" section listing those direct Markdown links. Never invent URLs.`;
   const response = await groqChat(
     [
       { role: "system", content: systemInstruction },
       ...messages,
     ],
-    true
+    true,
+    groqApiKey
   );
   const cleanedResponse = cleanBrowserCitations(response);
   const sources = extractSources(cleanedResponse);

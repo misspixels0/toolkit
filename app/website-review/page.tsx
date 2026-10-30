@@ -105,7 +105,7 @@ export default function WebsiteReviewPage() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="page-shell min-h-screen">
       {/* Hero */}
       <section className="bg-grid relative overflow-hidden bg-canvas">
         <div className="mx-auto max-w-3xl px-6 py-20 text-center">
@@ -150,7 +150,7 @@ export default function WebsiteReviewPage() {
 
       {/* Results */}
       {report && (
-        <section className="mx-auto max-w-5xl px-6 py-14">
+        <section className="chat-message mx-auto max-w-5xl px-6 py-14">
           <div className="mb-8">
             <p className="text-sm text-ink-500">Report for</p>
             <h2 className="text-xl font-semibold text-ink-900 break-all">
@@ -180,7 +180,7 @@ export default function WebsiteReviewPage() {
                 {report.audits.map((a) => (
                   <div
                     key={a.id}
-                    className="rounded-xl border border-ink-900/5 bg-white p-5 shadow-card"
+                    className="chat-message rounded-xl border border-ink-900/5 bg-white p-5 shadow-card"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <p className="font-medium text-ink-900">{a.title}</p>
